@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1080, initial-scale=1.0">
+  <title>KIMYO Wallet Customizing</title>
+
+  <!-- Pretendard (한글), Helvetica (영문) -->
+  <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet">
+
+  <!-- html2canvas -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      width: 1080px;
+      height: 1920px;
+      background: #000;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-family: 'Pretendard', 'Helvetica', sans-serif;
+      position: relative;
+    }
+    h1 {
+      font-size: 100px;
+      font-weight: 700;
+      margin-top: 120px;
+      margin-bottom: 20px;
+      font-family: 'Helvetica', sans-serif;
+    }
+    h2 {
+      font-size: 48px;
+      margin-bottom: 60px;
+      font-weight: 600;
+    }
+    .desc {
+      font-size: 34px;
+      line-height: 1.5;
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    .wallet-area {
+      width: 900px;
+      height: 600px;
+      background: #000;
+      border: 3px solid #fff;
+      border-radius: 20px;
+      position: relative;
+      margin-bottom: 30px;
+      overflow: hidden;
+    }
+    .sticker {
+      position: absolute;
+      border-radius: 50%;
+      border: 3px solid #fff;
+      background: #000;
+      cursor: move;
+    }
+    .remove-btn {
+      position: absolute;
+      top: -20px;
+      right: -20px;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: red;
+      color: #fff;
+      font-size: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    .notice {
+      font-size: 24px;
+      color: #aaa;
+      width: 900px;
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 80px;
+    }
+    .types {
+      display: flex;
+      gap: 120px;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 80px;
+    }
+    .type {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-size: 36px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    .circle {
+      border: 6px solid #fff;
+      border-radius: 50%;
+      margin-top: 20px;
+      background: transparent;
+    }
+    .circle.a { width: 80px; height: 80px; }
+    .circle.b { width: 180px; height: 180px; }
+    input {
+      width: 880px;
+      height: 90px;
+      border: 2px solid #fff;
+      border-radius: 10px;
+      background: transparent;
+      color: #fff;
+      font-size: 34px;
+      padding: 0 20px;
+      margin-bottom: 80px;
+      text-align: center;
+    }
+    input::placeholder { color: #888; }
+    .buttons {
+      display: flex;
+      gap: 60px;
+      justify-content: center;
+    }
+    .btn {
+      width: 360px;
+      height: 120px;
+      font-size: 42px;
+      font-weight: 700;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      background: #fff;
+      color: #000;
+    }
+    .popup {
+      position: absolute;
+      bottom: 200px;
+      background: rgba(0,0,0,0.8);
+      color: #fff;
+      padding: 30px 60px;
+      border-radius: 20px;
+      font-size: 32px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <h1>KIMYO</h1>
+  <h2>Wallet Customizing</h2>
+
+  <div class="desc">
+    검은 사각형은 지갑 영역입니다. 아일렛을 드래그하여 배치하세요.<br>
+    아일렛은 총 7개 까지 배치할 수 있어요.
+  </div>
+
+  <div class="wallet-area" id="wallet"></div>
+
+  <div class="notice">
+    <span>* 커스터마이징 시뮬레이터로 실제와 약간의 오차가 발생할 수 있습니다.</span>
+    <span>* 실제 9cmX6cm</span>
+  </div>
+
+  <div class="types">
+    <div class="type" onclick="addSticker('A')">
+      Type A
+      <div class="circle a"></div>
+    </div>
+    <div class="type" onclick="addSticker('B')">
+      Type B
+      <div class="circle b"></div>
+    </div>
+  </div>
+
+  <input id="userInfo" type="text" placeholder="성함 + 휴대폰 뒷자리">
+
+  <div class="buttons">
+    <button class="btn reset" onclick="resetStickers()">RESET</button>
+    <button class="btn send" onclick="saveImage()">SEND</button>
+  </div>
+
+  <div class="popup" id="popup">
+    저장 완료! 인스타그램 <b>@kimyo.kr</b> 계정으로 DM 보내주세요.
+  </div>
+
+<script>
+  const wallet = document.getElementById("wallet");
+  let stickers = [];
+  let dragging = null;
+
+  function addSticker(type) {
+    if (stickers.length >= 7) return alert("아일렛은 최대 7개까지 추가할 수 있습니다.");
+    const sticker = document.createElement("div");
+    sticker.classList.add("sticker");
+    const size = type === "A" ? 40 : 80;
+    sticker.style.width = size + "px";
+    sticker.style.height = size + "px";
+    sticker.style.left = "100px";
+    sticker.style.top = "100px";
+
+    const removeBtn = document.createElement("div");
+    removeBtn.classList.add("remove-btn");
+    removeBtn.innerText = "×";
+    removeBtn.onclick = (e) => {
+      e.stopPropagation();
+      wallet.removeChild(sticker);
+      stickers = stickers.filter(s => s !== sticker);
+    };
+    sticker.appendChild(removeBtn);
+
+    sticker.onmousedown = (e) => {
+      dragging = { el: sticker, offsetX: e.offsetX, offsetY: e.offsetY };
+    };
+
+    wallet.appendChild(sticker);
+    stickers.push(sticker);
+  }
+
+  document.onmousemove = (e) => {
+    if (!dragging) return;
+    const rect = wallet.getBoundingClientRect();
+    let x = e.clientX - rect.left - dragging.offsetX;
+    let y = e.clientY - rect.top - dragging.offsetY;
+    dragging.el.style.left = x + "px";
+    dragging.el.style.top = y + "px";
+  };
+
+  document.onmouseup = () => dragging = null;
+
+  function resetStickers() {
+    stickers.forEach(s => wallet.removeChild(s));
+    stickers = [];
+  }
+
+  function saveImage() {
+    const userInfo = document.getElementById("userInfo").value;
+    const tempText = document.createElement("div");
+    tempText.innerText = userInfo;
+    tempText.style.position = "absolute";
+    tempText.style.bottom = "20px";
+    tempText.style.left = "50%";
+    tempText.style.transform = "translateX(-50%)";
+    tempText.style.color = "white";
+    tempText.style.fontSize = "32px";
+    wallet.appendChild(tempText);
+
+    html2canvas(wallet).then(canvas => {
+      wallet.removeChild(tempText);
+      const link = document.createElement("a");
+      link.download = "wallet-custom.png";
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+
+      document.getElementById("popup").style.display = "block";
+      setTimeout(() => {
+        document.getElementById("popup").style.display = "none";
+      }, 3000);
+    });
+  }
+</script>
+</body>
+</html>
