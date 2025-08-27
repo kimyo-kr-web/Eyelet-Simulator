@@ -1,322 +1,376 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>KIMYO Wallet Customizing</title>
-<style>
-@import url('https://cdn.jsdelivr.net/npm/pretendard/dist/web/static/pretendard.css');
-
-body {
-  margin: 0;
-  background: #000;
-  color: #fff;
-  font-family: "Helvetica", "Pretendard", sans-serif;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  width: 100%;
-  max-width: 100%;
-  padding: 10px;
-  box-sizing: border-box;
-}
-
-h1 {
-  font-size: 10vw; /* 모바일 비율 조정 */
-  font-weight: bold;
-  margin: 20px 0 10px 0;
-}
-
-h2 {
-  font-size: 4.5vw;
-  font-weight: bold;
-  margin-bottom: 20px;
-}
-
-.description {
-  font-size: 2.5vw;
-  font-weight: bold;
-  line-height: 1.4;
-  margin: 0 5% 20px 5%;
-  color: #ddd;
-}
-
-.wallet {
-  width: 90vw; /* 모바일 스케일 */
-  max-width: 782px;
-  height: calc(90vw * 521 / 782); /* 비율 유지 */
-  border: 6px solid #fff; /* 아일렛보다 살짝 두껍게 */
-  border-radius: 8px;
-  margin: 0 auto;
-  position: relative;
-  background: #000;
-}
-
-.wallet-caption {
-  display: flex;
-  justify-content: space-between;
-  width: 90vw;
-  max-width: 782px;
-  font-size: 1.2vw;
-  font-weight: 500;
-  color: #aaa;
-  margin-top: 5px;
-}
-
-.eyelets {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 5vw;
-  margin: 20px 0;
-}
-
-.eyelet {
-  cursor: grab;
-}
-
-.eyelet-shape {
-  border: 16px solid #fff; /* 더 두껍게 */
-  border-radius: 50%;
-  background: transparent;
-}
-
-.eyeletA .eyelet-shape {
-  width: 113px;
-  height: 113px;
-}
-
-.eyeletB .eyelet-shape {
-  width: 243px;
-  height: 243px;
-}
-
-input {
-  width: 90vw;
-  max-width: 782px;
-  height: 18vw;
-  max-height: 143px;
-  margin: 20px 0;
-  border: 2px solid #fff;
-  border-radius: 8px;
-  font-size: 4vw;
-  font-weight: 500;
-  text-align: center;
-  background: transparent;
-  color: #fff;
-  box-sizing: border-box;
-}
-
-.buttons {
-  display: flex;
-  justify-content: center;
-  gap: 5vw;
-  margin: 20px 0 40px 0;
-  flex-wrap: wrap;
-}
-
-button {
-  width: 45vw;
-  max-width: 375px;
-  height: 12vw;
-  max-height: 120px;
-  border: none;
-  border-radius: 8px;
-  font-size: 4vw;
-  font-weight: bold;
-  background: #fff;
-  color: #000;
-  cursor: pointer;
-}
-
-button:active { background: #ddd; }
-
-.draggable {
-  position: absolute;
-  cursor: grab;
-}
-
-.delete-btn {
-  position: absolute;
-  top: -10px;
-  right: -10px;
-  background: red;
-  border: none;
-  color: #fff;
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
-  font-size: 24pt;
-  cursor: pointer;
-  display: none;
-}
-
-.draggable:hover .delete-btn { display: block; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>KIMYO Wallet Customizing</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #000;
+            font-family: 'Helvetica', 'Pretendard', sans-serif;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            touch-action: none;
+            overflow: hidden;
+        }
+        .container {
+            text-align: center;
+            padding: 10px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        h1 {
+            font-size: 70pt;
+            font-weight: bold;
+            margin: 0;
+        }
+        h2 {
+            font-size: 28pt;
+            font-weight: bold;
+            margin: 1px 0 5px 0; /* Reduced spacing between KIMYO and Wallet Customizing */
+        }
+        p {
+            font-size: 9.75pt;
+            font-weight: bold;
+            font-family: 'Pretendard', sans-serif;
+            margin: 5px 0;
+        }
+        .title-section { margin-bottom: 20px; }
+        .content-section { margin-bottom: 25px; }
+        .wallet-section { margin-bottom: 60px; }
+        .type-section { margin-top: 60px; margin-bottom: 25px; }
+        .input-section { margin-bottom: 25px; }
+        .button-section { margin-bottom: 20px; }
+        .wallet-area {
+            width: 391px;
+            height: 260.5px;
+            border: 1px solid #fff;
+            border-radius: 5px;
+            margin: 0 auto;
+            position: relative;
+            display: flex;
+            align-items: flex-start;
+            touch-action: none;
+        }
+        .note {
+            font-size: 6.175pt;
+            font-family: 'Pretendard', sans-serif;
+            font-weight: 500;
+            margin: 0;
+            width: 391px;
+            text-align: left;
+            position: absolute;
+            bottom: -30px;
+            left: 0;
+            white-space: nowrap;
+        }
+        .type-option {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            margin: 0 auto;
+        }
+        .type {
+            display: flex;
+            align-items: center;
+        }
+        .eyelet {
+            border: 9.5pt solid #fff;
+            border-radius: 50%;
+            box-sizing: content-box;
+        }
+        .eyelet-large {
+            width: 60.75px;
+            height: 60.75px;
+            border-width: 10pt;
+        }
+        .eyelet-small {
+            width: 28.25px;
+            height: 28.25px;
+            border: 4.75pt solid #fff;
+        }
+        .type-text {
+            font-size: 17.5pt;
+            font-family: 'Pretendard', sans-serif;
+            font-weight: 600;
+            margin-left: 5px;
+        }
+        .name-phone {
+            width: 391px;
+            height: 71.5px;
+            border: 1px solid #fff;
+            border-radius: 5px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .name-phone-input {
+            font-size: 17.5pt;
+            font-family: 'Pretendard', sans-serif;
+            font-weight: 500;
+            border: none;
+            background: transparent;
+            color: #fff;
+            text-align: center;
+            width: 90%;
+        }
+        .buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 0 auto;
+        }
+        .button {
+            width: 187.5px;
+            height: 60px;
+            background-color: #fff;
+            color: #000;
+            font-size: 17.5pt;
+            font-family: 'Pretendard', sans-serif;
+            font-weight: bold;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .button:hover {
+            background-color: #ccc;
+        }
+        .eyelet-container {
+            position: absolute;
+            transition: left 0.1s ease-out, top 0.1s ease-out;
+            touch-action: none;
+        }
+        .delete-btn {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            width: 10px;
+            height: 10px;
+            background: red;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 6px;
+            line-height: 10px;
+            text-align: center;
+            z-index: 10;
+        }
+        #downloadCanvas {
+            display: none;
+        }
+        .popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #fff;
+            color: #000;
+            padding: 10px;
+            border-radius: 5px;
+            z-index: 1000;
+            font-family: 'Pretendard', sans-serif;
+            font-size: 10pt;
+        }
+    </style>
 </head>
 <body>
+    <div class="container">
+        <div class="title-section">
+            <h1>KIMYO</h1>
+            <h2>Wallet Customizing</h2>
+        </div>
+        <div class="content-section">
+            <p>검은 사각형은 지갑 영역입니다.<br>아일렛 타입을 클릭하여 추가하고 드래그하여 배치하세요.<br>아일렛은 총 7개 까지 배치할 수 있습니다.</p>
+        </div>
+        <div class="wallet-section">
+            <div class="wallet-area" id="walletArea">
+                <div class="note">* 커스터마이징 시뮬레이터로 실제와 약간의 오차가 발생할 수 있습니다. * 실제 9cmX6cm</div>
+            </div>
+        </div>
+        <div class="type-section">
+            <div class="type-option">
+                <div class="type">
+                    <div class="eyelet eyelet-small" id="typeA"></div>
+                    <span class="type-text">Type A</span>
+                </div>
+                <div class="type">
+                    <div class="eyelet eyelet-large" id="typeB"></div>
+                    <span class="type-text">Type B</span>
+                </div>
+            </div>
+        </div>
+        <div class="input-section">
+            <div class="name-phone">
+                <input type="text" class="name-phone-input" id="namePhone" placeholder="성함 + 휴대폰 뒷자리">
+            </div>
+        </div>
+        <div class="button-section">
+            <div class="buttons">
+                <button class="button" onclick="reset()">RESET</button>
+                <button class="button" onclick="downloadImage()">DOWNLOAD</button>
+            </div>
+        </div>
+    </div>
 
-<h1>KIMYO</h1>
-<h2>Wallet Customizing</h2>
-<p class="description">
-  검은 사각형은 지갑 영역입니다. 아일렛을 드래그하여 배치하세요.<br/>
-  아일렛은 총 7개까지 배치할 수 있어요.
-</p>
+    <canvas id="downloadCanvas" width="391" height="260.5"></canvas>
+    <div class="popup" id="popup">아일렛 추가는 최대 7개 까지 수량 제한이 있습니다.</div>
 
-<div class="wallet"></div>
+    <script>
+        const walletArea = document.getElementById('walletArea');
+        const typeA = document.getElementById('typeA');
+        const typeB = document.getElementById('typeB');
+        const namePhoneInput = document.getElementById('namePhone');
+        const popup = document.getElementById('popup');
+        let eyelets = [];
+        let isDragging = false;
+        let currentEyelet = null;
+        let startX, startY, startLeft, startTop;
 
-<div class="wallet-caption">
-  <span>* 커스터마이징 시뮬레이터로 실제와 약간의 오차가 발생할 수 있습니다.</span>
-  <span>* 실제 9cm X 6cm</span>
-</div>
+        typeA.addEventListener('click', () => addEyelet('small'));
+        typeB.addEventListener('click', () => addEyelet('large'));
 
-<div class="eyelets">
-  <div class="eyelet eyeletA">
-    <div class="eyelet-shape"></div>
-  </div>
-  <div class="eyelet eyeletB">
-    <div class="eyelet-shape"></div>
-  </div>
-</div>
+        typeA.addEventListener('touchstart', (e) => { e.preventDefault(); addEyelet('small'); }, { passive: false });
+        typeB.addEventListener('touchstart', (e) => { e.preventDefault(); addEyelet('large'); }, { passive: false });
 
-<input type="text" placeholder="성함 + 휴대폰 뒷자리"/>
+        function addEyelet(sizeType) {
+            if (eyelets.length >= 7) {
+                popup.style.display = 'block';
+                setTimeout(() => popup.style.display = 'none', 2000);
+                return;
+            }
 
-<div class="buttons">
-  <button id="resetBtn">RESET</button>
-  <button id="downloadBtn">DOWNLOAD</button>
-</div>
+            const container = document.createElement('div');
+            container.classList.add('eyelet-container');
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script>
-const wallet = document.querySelector('.wallet');
-const eyelets = document.querySelectorAll('.eyelet');
-const maxEyelets = 7;
-const inputField = document.querySelector('input');
+            const eyelet = document.createElement('div');
+            eyelet.classList.add('eyelet', `eyelet-${sizeType}`);
 
-function makeDraggable(clone) {
-  let targetX = 0, targetY = 0;
-  let currentX = 0, currentY = 0;
-  let isDragging = false;
-  let offsetX = 0, offsetY = 0;
+            const deleteBtn = document.createElement('button');
+            deleteBtn.classList.add('delete-btn');
+            deleteBtn.innerText = 'x';
+            deleteBtn.addEventListener('click', () => {
+                walletArea.removeChild(container);
+                eyelets = eyelets.filter(e => e !== container);
+            });
 
-  function animate() {
-    if (!isDragging) return;
-    currentX += (targetX - currentX) * 0.2;
-    currentY += (targetY - currentY) * 0.2;
-    clone.style.left = currentX + 'px';
-    clone.style.top = currentY + 'px';
-    requestAnimationFrame(animate);
-  }
+            container.appendChild(eyelet);
+            container.appendChild(deleteBtn);
+            walletArea.appendChild(container);
 
-  function startDrag(e) {
-    isDragging = true;
-    const rect = clone.getBoundingClientRect();
-    if(e.type.startsWith('touch')) {
-      const touch = e.touches[0];
-      offsetX = touch.clientX - rect.left;
-      offsetY = touch.clientY - rect.top;
-    } else {
-      offsetX = e.offsetX;
-      offsetY = e.offsetY;
-    }
-    const walletRect = wallet.getBoundingClientRect();
-    currentX = rect.left - walletRect.left;
-    currentY = rect.top - walletRect.top;
-    targetX = currentX;
-    targetY = currentY;
-    animate();
-    e.preventDefault();
-  }
+            // Position in center
+            const eyeletRect = eyelet.getBoundingClientRect();
+            const walletRect = walletArea.getBoundingClientRect();
+            const left = (walletRect.width - eyeletRect.width) / 2;
+            const top = (walletRect.height - eyeletRect.height) / 2;
+            container.style.left = `${left}px`;
+            container.style.top = `${top}px`;
+            container.style.transition = 'left 0.1s ease-out, top 0.1s ease-out';
 
-  function moveDrag(e) {
-    if(!isDragging) return;
-    const rect = wallet.getBoundingClientRect();
-    let clientX, clientY;
-    if(e.type.startsWith('touch')) {
-      const touch = e.touches[0];
-      clientX = touch.clientX;
-      clientY = touch.clientY;
-    } else {
-      clientX = e.clientX;
-      clientY = e.clientY;
-    }
-    targetX = Math.max(0, Math.min(rect.width - clone.offsetWidth, clientX - rect.left - offsetX));
-    targetY = Math.max(0, Math.min(rect.height - clone.offsetHeight, clientY - rect.top - offsetY));
-    e.preventDefault();
-  }
+            eyelets.push(container);
 
-  function endDrag() { isDragging = false; }
+            // Add drag listeners
+            eyelet.addEventListener('mousedown', (e) => startDragging(container, e), { passive: false });
+            eyelet.addEventListener('touchstart', (e) => startDragging(container, e), { passive: false });
+        }
 
-  clone.addEventListener('mousedown', startDrag);
-  document.addEventListener('mousemove', moveDrag);
-  document.addEventListener('mouseup', endDrag);
+        function startDragging(container, e) {
+            e.preventDefault();
+            isDragging = true;
+            currentEyelet = container;
 
-  clone.addEventListener('touchstart', startDrag, { passive: false });
-  document.addEventListener('touchmove', moveDrag, { passive: false });
-  document.addEventListener('touchend', endDrag);
-}
+            if (e.type === 'touchstart') {
+                startX = e.touches[0].clientX;
+                startY = e.touches[0].clientY;
+            } else {
+                startX = e.clientX;
+                startY = e.clientY;
+            }
+            startLeft = parseFloat(container.style.left) || 0;
+            startTop = parseFloat(container.style.top) || 0;
 
-eyelets.forEach(eyelet => {
-  eyelet.addEventListener('click', () => {
-    if(wallet.querySelectorAll('.draggable').length >= maxEyelets) return;
-    const clone = eyelet.querySelector('.eyelet-shape').cloneNode(true);
-    clone.classList.add('draggable');
-    clone.style.left = '50px';
-    clone.style.top = '50px';
+            document.addEventListener('mousemove', drag, { passive: false });
+            document.addEventListener('mouseup', stopDragging, { passive: false });
+            document.addEventListener('touchmove', drag, { passive: false });
+            document.addEventListener('touchend', stopDragging, { passive: false });
+        }
 
-    const deleteBtn = document.createElement('button');
-    deleteBtn.textContent = '×';
-    deleteBtn.className = 'delete-btn';
-    deleteBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      clone.remove();
-    });
-    clone.appendChild(deleteBtn);
+        function drag(e) {
+            if (!isDragging) return;
+            e.preventDefault();
 
-    wallet.appendChild(clone);
-    makeDraggable(clone);
-  });
-});
+            let clientX, clientY;
+            if (e.type === 'touchmove') {
+                clientX = e.touches[0].clientX;
+                clientY = e.touches[0].clientY;
+            } else {
+                clientX = e.clientX;
+                clientY = e.clientY;
+            }
 
-document.getElementById('resetBtn').addEventListener('click', () => {
-  wallet.innerHTML = '';
-});
+            const deltaX = clientX - startX;
+            const deltaY = clientY - startY;
+            currentEyelet.style.left = `${startLeft + deltaX}px`;
+            currentEyelet.style.top = `${startTop + deltaY}px`;
+        }
 
-document.getElementById('downloadBtn').addEventListener('click', () => {
-  html2canvas(wallet).then(canvas => {
-    // 9cm x 6cm 비율 이미지 생성
-    const dpi = 300;
-    const widthCM = 9;
-    const heightCM = 6;
-    const widthPX = Math.round(widthCM / 2.54 * dpi);
-    const heightPX = Math.round(heightCM / 2.54 * dpi);
+        function stopDragging() {
+            isDragging = false;
+            currentEyelet = null;
+            document.removeEventListener('mousemove', drag);
+            document.removeEventListener('mouseup', stopDragging);
+            document.removeEventListener('touchmove', drag);
+            document.removeEventListener('touchend', stopDragging);
+        }
 
-    const scaledCanvas = document.createElement('canvas');
-    scaledCanvas.width = widthPX;
-    scaledCanvas.height = heightPX;
-    const ctx = scaledCanvas.getContext('2d');
+        function reset() {
+            eyelets.forEach(container => walletArea.removeChild(container));
+            eyelets = [];
+            namePhoneInput.value = '';
+        }
 
-    ctx.fillStyle = '#000';
-    ctx.fillRect(0, 0, widthPX, heightPX);
-    ctx.drawImage(canvas, 0, 0, widthPX, heightPX);
+        function downloadImage() {
+            const canvas = document.getElementById('downloadCanvas');
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, 391, 260.5);
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(0, 0, 391, 260.5);
 
-    // 성함 + 번호 중앙 하단 추가
-    const text = inputField.value;
-    if (text) {
-      ctx.fillStyle = '#fff';
-      const fontSize = Math.round(30 * widthPX / canvas.width);
-      ctx.font = `${fontSize}px Pretendard`;
-      ctx.textAlign = 'center';
-      ctx.fillText(text, widthPX / 2, heightPX - fontSize);
-    }
+            eyelets.forEach(container => {
+                const eyelet = container.querySelector('.eyelet');
+                const rect = eyelet.getBoundingClientRect();
+                const walletRect = walletArea.getBoundingClientRect();
+                const x = rect.left - walletRect.left;
+                const y = rect.top - walletRect.top;
+                const size = eyelet.classList.contains('eyelet-large') ? 60.75 : 28.25;
+                const thickness = eyelet.classList.contains('eyelet-large') ? 10 : 4.75;
+                ctx.beginPath();
+                ctx.arc(x + size / 2 + thickness, y + size / 2 + thickness, (size - thickness * 2) / 2, 0, Math.PI * 2);
+                ctx.lineWidth = thickness;
+                ctx.strokeStyle = '#fff';
+                ctx.stroke();
+            });
 
-    const link = document.createElement('a');
-    link.download = 'wallet.png';
-    link.href = scaledCanvas.toDataURL();
-    link.click();
-  });
-});
-</script>
+            ctx.font = '15pt Pretendard';
+            ctx.fillStyle = '#fff';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'bottom';
+            ctx.fillText(namePhoneInput.value, 195.5, 255);
+
+            const link = document.createElement('a');
+            link.download = 'custom_wallet.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+    </script>
 </body>
 </html>
