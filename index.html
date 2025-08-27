@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>KIMYO Wallet Customizing</title>
+  <!-- Pretendard 웹폰트 -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/variable/pretendardvariable.css" />
+  <style>
+    body {
+      margin: 0;
+      background: black;
+      color: white;
+      font-family: Helvetica, Pretendard, sans-serif;
+      text-align: center;
+    }
+
+    .container {
+      width: 1631px;
+      margin: 0 auto;
+    }
+
+    h1 { font-size: 205px; margin: 40px auto 20px; }
+    h2 { font-size: 88px; margin: 0 auto 40px; }
+
+    .desc {
+      font-size: 46px;
+      width: 1567px;
+      margin: 0 auto 40px;
+    }
+
+    .wallet {
+      width: 1631px;
+      height: 1089px;
+      margin: 0 auto;
+      background: #111;
+      border: 2px solid white;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .note { font-size: 37px; margin: 20px auto; }
+
+    .eyelets {
+      display: flex;
+      justify-content: center;
+      gap: 100px;
+      margin: 60px 0;
+    }
+
+    .eyeletA, .eyeletB {
+      border: 5px solid white;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+
+    .eyeletA { width: 237px; height: 237px; }
+    .eyeletB { width: 509px; height: 509px; }
+
+    .eyelet-label { font-size: 53px; margin-top: 10px; }
+
+    .input-box {
+      width: 1631px;
+      height: 100px;
+      border: 2px solid white;
+      margin: 40px auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 40px;
+      background: black;
+      color: white;
+    }
+
+    input {
+      background: transparent;
+      border: none;
+      font-size: 40px;
+      color: white;
+      width: 90%;
+      text-align: center;
+      font-family: Pretendard, sans-serif;
+    }
+
+    input:focus { outline: none; }
+
+    .btn-group {
+      display: flex;
+      justify-content: center;
+      gap: 50px;
+      margin: 40px 0;
+    }
+
+    .btn {
+      width: 300px;
+      height: 100px;
+      border: 2px solid white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 40px;
+      cursor: pointer;
+      font-family: Pretendard, sans-serif;
+    }
+    .btn:hover { background: white; color: black; }
+
+    /* 지갑에 추가된 아일렛 */
+    .draggable {
+      position: absolute;
+      cursor: move;
+    }
+
+    .delete-btn {
+      position: absolute;
+      top: -15px;
+      right: -15px;
+      width: 30px;
+      height: 30px;
+      background: red;
+      color: white;
+      border-radius: 50%;
+      font-size: 20px;
+      line-height: 30px;
+      text-align: center;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>KIMYO</h1>
+    <h2>Wallet Customizing</h2>
+
+    <div class="desc">
+      아일렛은 총 7개 까지 배치할 수 있어요.<br>
+      검은 사각형은 지갑 영역입니다. 아일렛을 드래그하여 배치하세요.
+    </div>
+
+    <div class="wallet" id="wallet"></div>
+
+    <div class="note">* 커스터마이징 시뮬레이터 (실제 9cm X 6cm)</div>
+
+    <div class="eyelets">
+      <div>
+        <div class="eyeletA" onclick="addEyelet('A')"></div>
+        <div class="eyelet-label">Type A</div>
+      </div>
+      <div>
+        <div class="eyeletB" onclick="addEyelet('B')"></div>
+        <div class="eyelet-label">Type B</div>
+      </div>
+    </div>
+
+    <div class="input-box">
+      <input type="text" id="userText" placeholder="성명 + 휴대폰 뒷자리 입력">
+    </div>
+
+    <div class="btn-group">
+      <div class="btn" onclick="resetWallet()">리셋</div>
+      <div class="btn" onclick="downloadWallet()">다운로드</div>
+    </div>
+  </div>
+
+  <!-- html2canvas -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script>
+    let eyeletCount = 0;
+    function addEyelet(type) {
+      if (eyeletCount >= 7) return alert("아일렛은 최대 7개까지 가능합니다.");
+      const wallet = document.getElementById('wallet');
+      const eyelet = document.createElement('div');
+      eyelet.classList.add('draggable');
+      eyelet.style.width = type === 'A' ? '237px' : '509px';
+      eyelet.style.height = type === 'A' ? '237px' : '509px';
+      eyelet.style.border = '5px solid white';
+      eyelet.style.borderRadius = '50%';
+      eyelet.style.left = (wallet.offsetWidth/2 - eyelet.offsetWidth/2) + "px";
+      eyelet.style.top = (wallet.offsetHeight/2 - eyelet.offsetHeight/2) + "px";
+
+      // 삭제 버튼
+      const del = document.createElement('div');
+      del.className = "delete-btn";
+      del.innerText = "×";
+      del.onclick = () => { eyelet.remove(); eyeletCount--; };
+      eyelet.appendChild(del);
+
+      wallet.appendChild(eyelet);
+      makeDraggable(eyelet);
+      eyeletCount++;
+    }
+
+    function makeDraggable(el) {
+      let offsetX, offsetY, isDown = false;
+
+      el.addEventListener('mousedown', e => {
+        if (e.target.classList.contains('delete-btn')) return;
+        isDown = true;
+        offsetX = e.offsetX;
+        offsetY = e.offsetY;
+      });
+
+      document.addEventListener('mousemove', e => {
+        if (!isDown) return;
+        el.style.left = (e.pageX - wallet.offsetLeft - offsetX) + 'px';
+        el.style.top = (e.pageY - wallet.offsetTop - offsetY) + 'px';
+      });
+
+      document.addEventListener('mouseup', () => { isDown = false; });
+    }
+
+    function resetWallet() {
+      document.getElementById('wallet').innerHTML = "";
+      eyeletCount = 0;
+    }
+
+    function downloadWallet() {
+      const wallet = document.getElementById('wallet');
+      // 삭제버튼 숨기기
+      wallet.querySelectorAll('.delete-btn').forEach(btn => btn.style.display = "none");
+
+      // 텍스트 추가
+      const text = document.getElementById('userText').value;
+      const textDiv = document.createElement('div');
+      textDiv.style.position = "absolute";
+      textDiv.style.bottom = "20px";
+      textDiv.style.left = "50%";
+      textDiv.style.transform = "translateX(-50%)";
+      textDiv.style.fontSize = "50px";
+      textDiv.style.fontFamily = "Pretendard, sans-serif";
+      textDiv.innerText = text;
+      wallet.appendChild(textDiv);
+
+      html2canvas(wallet).then(canvas => {
+        const link = document.createElement('a');
+        link.download = "wallet.png";
+        link.href = canvas.toDataURL();
+        link.click();
+        textDiv.remove();
+        wallet.querySelectorAll('.delete-btn').forEach(btn => btn.style.display = "block");
+      });
+    }
+  </script>
+</body>
+</html>
