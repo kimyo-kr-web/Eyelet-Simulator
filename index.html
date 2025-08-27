@@ -16,35 +16,37 @@ body {
   flex-direction: column;
   align-items: center;
   text-align: center;
-  width: 1080px;
+  width: 100%;
   max-width: 100%;
+  padding: 10px;
+  box-sizing: border-box;
 }
 
 h1 {
-  font-size: 140pt;
+  font-size: 10vw; /* 모바일 비율 조정 */
   font-weight: bold;
-  margin-top: 40px;
-  margin-bottom: 10px;
+  margin: 20px 0 10px 0;
 }
 
 h2 {
-  font-size: 56pt;
+  font-size: 4.5vw;
   font-weight: bold;
-  margin-bottom: 30px;
+  margin-bottom: 20px;
 }
 
 .description {
-  font-size: 30pt;
+  font-size: 2.5vw;
   font-weight: bold;
   line-height: 1.4;
-  margin: 0 20px 20px;
+  margin: 0 5% 20px 5%;
   color: #ddd;
 }
 
 .wallet {
-  width: 782px;
-  height: 521px;
-  border: 4px solid #fff;
+  width: 90vw; /* 모바일 스케일 */
+  max-width: 782px;
+  height: calc(90vw * 521 / 782); /* 비율 유지 */
+  border: 6px solid #fff; /* 아일렛보다 살짝 두껍게 */
   border-radius: 8px;
   margin: 0 auto;
   position: relative;
@@ -54,8 +56,9 @@ h2 {
 .wallet-caption {
   display: flex;
   justify-content: space-between;
-  width: 782px;
-  font-size: 19pt;
+  width: 90vw;
+  max-width: 782px;
+  font-size: 1.2vw;
   font-weight: 500;
   color: #aaa;
   margin-top: 5px;
@@ -65,55 +68,62 @@ h2 {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 40px;
-  margin: 30px 0;
+  gap: 5vw;
+  margin: 20px 0;
 }
 
 .eyelet {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  color: #fff;
-  font-size: 35pt;
-  font-weight: 600;
   cursor: grab;
 }
 
 .eyelet-shape {
-  border: 12px solid #fff;
+  border: 16px solid #fff; /* 더 두껍게 */
   border-radius: 50%;
-  margin-right: 15px;
+  background: transparent;
 }
 
-.eyeletA .eyelet-shape { width: 113px; height: 113px; }
-.eyeletB .eyelet-shape { width: 243px; height: 243px; }
+.eyeletA .eyelet-shape {
+  width: 113px;
+  height: 113px;
+}
+
+.eyeletB .eyelet-shape {
+  width: 243px;
+  height: 243px;
+}
 
 input {
-  width: 782px;
-  height: 143px;
+  width: 90vw;
+  max-width: 782px;
+  height: 18vw;
+  max-height: 143px;
   margin: 20px 0;
   border: 2px solid #fff;
   border-radius: 8px;
-  font-size: 35pt;
+  font-size: 4vw;
   font-weight: 500;
   text-align: center;
   background: transparent;
   color: #fff;
+  box-sizing: border-box;
 }
 
 .buttons {
   display: flex;
   justify-content: center;
-  gap: 20px;
-  margin: 20px 0 40px;
+  gap: 5vw;
+  margin: 20px 0 40px 0;
+  flex-wrap: wrap;
 }
 
 button {
-  width: 375px;
-  height: 120px;
+  width: 45vw;
+  max-width: 375px;
+  height: 12vw;
+  max-height: 120px;
   border: none;
   border-radius: 8px;
-  font-size: 35pt;
+  font-size: 4vw;
   font-weight: bold;
   background: #fff;
   color: #000;
@@ -164,11 +174,9 @@ button:active { background: #ddd; }
 <div class="eyelets">
   <div class="eyelet eyeletA">
     <div class="eyelet-shape"></div>
-    <span>Type A</span>
   </div>
   <div class="eyelet eyeletB">
     <div class="eyelet-shape"></div>
-    <span>Type B</span>
   </div>
 </div>
 
@@ -251,8 +259,8 @@ function makeDraggable(clone) {
 
 eyelets.forEach(eyelet => {
   eyelet.addEventListener('click', () => {
-    if(wallet.children.length >= maxEyelets) return;
-    const clone = eyelet.cloneNode(true);
+    if(wallet.querySelectorAll('.draggable').length >= maxEyelets) return;
+    const clone = eyelet.querySelector('.eyelet-shape').cloneNode(true);
     clone.classList.add('draggable');
     clone.style.left = '50px';
     clone.style.top = '50px';
@@ -293,7 +301,7 @@ document.getElementById('downloadBtn').addEventListener('click', () => {
     ctx.fillRect(0, 0, widthPX, heightPX);
     ctx.drawImage(canvas, 0, 0, widthPX, heightPX);
 
-    // 성함 + 번호 텍스트 중앙 하단 추가
+    // 성함 + 번호 중앙 하단 추가
     const text = inputField.value;
     if (text) {
       ctx.fillStyle = '#fff';
