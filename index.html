@@ -268,10 +268,12 @@
             walletArea.appendChild(container);
 
             // Position in center
-            const eyeletRect = eyelet.getBoundingClientRect();
-            const walletRect = walletArea.getBoundingClientRect();
-            const left = (walletRect.width - eyeletRect.width) / 2;
-            const top = (walletRect.height - eyeletRect.height) / 2;
+            const eyeletWidth = eyelet.offsetWidth;
+            const eyeletHeight = eyelet.offsetHeight;
+            const walletWidth = walletArea.clientWidth;
+            const walletHeight = walletArea.clientHeight;
+            const left = (walletWidth - eyeletWidth) / 2;
+            const top = (walletHeight - eyeletHeight) / 2;
             container.style.left = `${left}px`;
             container.style.top = `${top}px`;
             container.style.transition = 'left 0.1s ease-out, top 0.1s ease-out';
@@ -320,12 +322,10 @@
             const deltaX = clientX - startX;
             const deltaY = clientY - startY;
             const eyelet = currentEyelet.querySelector('.eyelet');
-            const eyeletRect = eyelet.getBoundingClientRect();
-            const walletRect = walletArea.getBoundingClientRect();
-            const eyeletWidth = eyeletRect.width;
-            const eyeletHeight = eyeletRect.height;
-            const walletWidth = walletRect.width;
-            const walletHeight = walletRect.height;
+            const eyeletWidth = eyelet.offsetWidth;
+            const eyeletHeight = eyelet.offsetHeight;
+            const walletWidth = walletArea.clientWidth;
+            const walletHeight = walletArea.clientHeight;
 
             let newLeft = startLeft + deltaX;
             let newTop = startTop + deltaY;
