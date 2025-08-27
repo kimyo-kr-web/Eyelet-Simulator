@@ -2,8 +2,9 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>KIMYO Wallet Customizing</title>
-  <!-- Pretendard 웹폰트 -->
+  <!-- Pretendard -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/variable/pretendardvariable.css" />
   <style>
     body {
@@ -12,98 +13,98 @@
       color: white;
       font-family: Helvetica, Pretendard, sans-serif;
       text-align: center;
+      overflow-x: hidden;
     }
 
     .container {
-      width: 1631px;
-      margin: 0 auto;
+      width: 100%;
+      max-width: 100%;
+      padding: 5vw;
+      box-sizing: border-box;
     }
 
-    h1 { font-size: 205px; margin: 40px auto 20px; }
-    h2 { font-size: 88px; margin: 0 auto 40px; }
+    h1 { font-size: 12vw; margin: 5vw auto 2vw; }
+    h2 { font-size: 6vw; margin: 0 auto 6vw; }
 
     .desc {
-      font-size: 46px;
-      width: 1567px;
-      margin: 0 auto 40px;
+      font-size: 4vw;
+      margin: 0 auto 5vw;
+      line-height: 1.4;
     }
 
     .wallet {
-      width: 1631px;
-      height: 1089px;
+      width: 90vw;
+      aspect-ratio: 1631 / 1089; /* 원본 비율 유지 */
       margin: 0 auto;
       background: #111;
-      border: 2px solid white;
+      border: 0.5vw solid white;
       position: relative;
       overflow: hidden;
+      border-radius: 1vw;
     }
 
-    .note { font-size: 37px; margin: 20px auto; }
+    .note { font-size: 3vw; margin: 3vw auto; }
 
     .eyelets {
       display: flex;
       justify-content: center;
-      gap: 100px;
-      margin: 60px 0;
+      gap: 10vw;
+      margin: 8vw 0;
     }
 
     .eyeletA, .eyeletB {
-      border: 5px solid white;
+      border: 0.5vw solid white;
       border-radius: 50%;
       cursor: pointer;
+      flex-shrink: 0;
     }
 
-    .eyeletA { width: 237px; height: 237px; }
-    .eyeletB { width: 509px; height: 509px; }
+    .eyeletA { width: 12vw; height: 12vw; }
+    .eyeletB { width: 25vw; height: 25vw; }
 
-    .eyelet-label { font-size: 53px; margin-top: 10px; }
+    .eyelet-label { font-size: 4vw; margin-top: 2vw; }
 
     .input-box {
-      width: 1631px;
-      height: 100px;
-      border: 2px solid white;
-      margin: 40px auto;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 40px;
+      width: 90vw;
+      border: 0.5vw solid white;
+      margin: 5vw auto;
+      padding: 2vw;
+      font-size: 4vw;
       background: black;
       color: white;
     }
 
     input {
+      width: 100%;
       background: transparent;
       border: none;
-      font-size: 40px;
+      font-size: 4vw;
       color: white;
-      width: 90%;
       text-align: center;
       font-family: Pretendard, sans-serif;
     }
-
     input:focus { outline: none; }
 
     .btn-group {
       display: flex;
       justify-content: center;
-      gap: 50px;
-      margin: 40px 0;
+      gap: 5vw;
+      margin: 5vw 0;
     }
 
     .btn {
-      width: 300px;
-      height: 100px;
-      border: 2px solid white;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 40px;
+      flex: 1;
+      max-width: 40vw;
+      border: 0.5vw solid white;
+      padding: 3vw 0;
+      font-size: 4vw;
       cursor: pointer;
       font-family: Pretendard, sans-serif;
+      border-radius: 1vw;
     }
     .btn:hover { background: white; color: black; }
 
-    /* 지갑에 추가된 아일렛 */
+    /* 드래그된 아일렛 */
     .draggable {
       position: absolute;
       cursor: move;
@@ -111,15 +112,15 @@
 
     .delete-btn {
       position: absolute;
-      top: -15px;
-      right: -15px;
-      width: 30px;
-      height: 30px;
+      top: -3vw;
+      right: -3vw;
+      width: 6vw;
+      height: 6vw;
       background: red;
       color: white;
       border-radius: 50%;
-      font-size: 20px;
-      line-height: 30px;
+      font-size: 4vw;
+      line-height: 6vw;
       text-align: center;
       cursor: pointer;
     }
@@ -137,7 +138,7 @@
 
     <div class="wallet" id="wallet"></div>
 
-    <div class="note">* 커스터마이징 시뮬레이터 (실제 9cm X 6cm)</div>
+    <div class="note">* 커스터마이징 시뮬레이터 (비율 동일)</div>
 
     <div class="eyelets">
       <div>
@@ -160,21 +161,21 @@
     </div>
   </div>
 
-  <!-- html2canvas -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script>
     let eyeletCount = 0;
+
     function addEyelet(type) {
       if (eyeletCount >= 7) return alert("아일렛은 최대 7개까지 가능합니다.");
       const wallet = document.getElementById('wallet');
       const eyelet = document.createElement('div');
       eyelet.classList.add('draggable');
-      eyelet.style.width = type === 'A' ? '237px' : '509px';
-      eyelet.style.height = type === 'A' ? '237px' : '509px';
-      eyelet.style.border = '5px solid white';
+      eyelet.style.width = type === 'A' ? '12vw' : '25vw';
+      eyelet.style.height = type === 'A' ? '12vw' : '25vw';
+      eyelet.style.border = '0.5vw solid white';
       eyelet.style.borderRadius = '50%';
-      eyelet.style.left = (wallet.offsetWidth/2 - eyelet.offsetWidth/2) + "px";
-      eyelet.style.top = (wallet.offsetHeight/2 - eyelet.offsetHeight/2) + "px";
+      eyelet.style.left = "40%";
+      eyelet.style.top = "40%";
 
       // 삭제 버튼
       const del = document.createElement('div');
@@ -191,6 +192,7 @@
     function makeDraggable(el) {
       let offsetX, offsetY, isDown = false;
 
+      // 마우스 이벤트
       el.addEventListener('mousedown', e => {
         if (e.target.classList.contains('delete-btn')) return;
         isDown = true;
@@ -205,6 +207,25 @@
       });
 
       document.addEventListener('mouseup', () => { isDown = false; });
+
+      // 터치 이벤트 (모바일)
+      el.addEventListener('touchstart', e => {
+        if (e.target.classList.contains('delete-btn')) return;
+        isDown = true;
+        const touch = e.touches[0];
+        const rect = el.getBoundingClientRect();
+        offsetX = touch.clientX - rect.left;
+        offsetY = touch.clientY - rect.top;
+      });
+
+      document.addEventListener('touchmove', e => {
+        if (!isDown) return;
+        const touch = e.touches[0];
+        el.style.left = (touch.pageX - wallet.offsetLeft - offsetX) + 'px';
+        el.style.top = (touch.pageY - wallet.offsetTop - offsetY) + 'px';
+      });
+
+      document.addEventListener('touchend', () => { isDown = false; });
     }
 
     function resetWallet() {
@@ -214,17 +235,15 @@
 
     function downloadWallet() {
       const wallet = document.getElementById('wallet');
-      // 삭제버튼 숨기기
       wallet.querySelectorAll('.delete-btn').forEach(btn => btn.style.display = "none");
 
-      // 텍스트 추가
       const text = document.getElementById('userText').value;
       const textDiv = document.createElement('div');
       textDiv.style.position = "absolute";
-      textDiv.style.bottom = "20px";
+      textDiv.style.bottom = "2vw";
       textDiv.style.left = "50%";
       textDiv.style.transform = "translateX(-50%)";
-      textDiv.style.fontSize = "50px";
+      textDiv.style.fontSize = "4vw";
       textDiv.style.fontFamily = "Pretendard, sans-serif";
       textDiv.innerText = text;
       wallet.appendChild(textDiv);
