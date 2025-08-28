@@ -211,14 +211,31 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background-color: #fff;
+            background-color: #ffcc00;
             color: #000;
-            padding: 7.05375px;
+            padding: 10px;
             border-radius: 3.526875px;
             z-index: 1000;
             font-family: 'Pretendard', sans-serif;
-            font-size: 7.05375pt;
-            white-space: nowrap;
+            font-size: 10pt;
+            text-align: center;
+            max-width: 80%;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+        .popup-button {
+            margin-top: 10px;
+            padding: 5px 10px;
+            background-color: #fff;
+            color: #000;
+            border: none;
+            border-radius: 3.526875px;
+            font-size: 8pt;
+            font-family: 'Pretendard', sans-serif;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .popup-button:hover {
+            background-color: #ccc;
         }
     </style>
 </head>
@@ -262,7 +279,10 @@
     </div>
 
     <canvas id="downloadCanvas"></canvas>
-    <div class="popup" id="popup">아일렛 추가는 최대 7개 까지 수량 제한이 있습니다.</div>
+    <div class="popup" id="popup">
+        <div id="popupMessage"></div>
+        <button class="popup-button" id="popupConfirm" style="display: none;">확인</button>
+    </div>
 
     <script>
         const walletArea = document.getElementById('walletArea');
@@ -270,6 +290,8 @@
         const typeB = document.getElementById('typeB');
         const namePhoneInput = document.getElementById('namePhone');
         const popup = document.getElementById('popup');
+        const popupMessage = document.getElementById('popupMessage');
+        const popupConfirm = document.getElementById('popupConfirm');
         let eyelets = [];
         let isDragging = false;
         let currentEyelet = null;
@@ -283,7 +305,9 @@
 
         function addEyelet(sizeType) {
             if (eyelets.length >= 7) {
+                popupMessage.innerText = '아일렛 추가는 최대 7개 까지 수량 제한이 있습니다.';
                 popup.style.display = 'block';
+                popupConfirm.style.display = 'none';
                 setTimeout(() => popup.style.display = 'none', 2000);
                 return;
             }
@@ -451,9 +475,12 @@
 
             const dataUrl = canvas.toDataURL('image/png');
 
-            // iOS에서 공유 메뉴 띄우기
-            if (/iPhone|iPad/i.test(navigator.userAgent) && navigator.share) {
-                console.log('Attempting to use navigator.share on iOS');
+            // 공유 메뉴를 띄우기 (iOS 및 안드로이드 지원)
+            if (navigator.share) {
+                console.log('Attempting to use navigator.share');
+                popupMessage.innerText = '공유 메뉴에서 "이미지 저장" 또는 "사진에 저장"을 선택한 후 확인 버튼을 눌러 카카오톡 채널로 이동하세요.';
+                popupConfirm.style.display = 'block';
+                popup.style.display = 'block';
                 try {
                     const blob = dataURLtoBlob(dataUrl);
                     const file = new File([blob], 'custom_wallet.png', { type: 'image/png' });
@@ -466,16 +493,21 @@
                     }).catch((error) => {
                         console.error('Share failed:', error);
                         // 폴백: 공유 실패 시 다운로드
+                        popupMessage.innerText = '이미지 공유에 실패했습니다. 다운로드된 이미지를 확인한 후 확인 버튼을 눌러 카카오톡 채널로 이동하세요.';
                         fallbackDownload(dataUrl);
                     });
                 } catch (e) {
                     console.error('Error preparing share:', e);
                     // 폴백: 공유 준비 오류 시 다운로드
+                    popupMessage.innerText = '이미지 공유 준비 중 오류가 발생했습니다. 다운로드된 이미지를 확인한 후 확인 버튼을 눌러 카카오톡 채널로 이동하세요.';
                     fallbackDownload(dataUrl);
                 }
             } else {
-                console.log('navigator.share not supported or not iOS, using fallback');
-                // iOS가 아니거나 navigator.share 미지원 시 다운로드
+                console.log('navigator.share not supported, using fallback');
+                // 공유 미지원 시 다운로드
+                popupMessage.innerText = '이미지가 다운로드되었습니다. 다운로드 폴더를 확인한 후 확인 버튼을 눌러 카카오톡 채널로 이동하세요.';
+                popupConfirm.style.display = 'block';
+                popup.style.display = 'block';
                 fallbackDownload(dataUrl);
             }
         }
@@ -511,10 +543,11 @@
             console.log('Submit button clicked');
             // 이미지 다운로드 및 공유 트리거
             downloadImage();
-            // 카카오 플러스친구로 리다이렉트
-            setTimeout(() => {
+            // 팝업의 확인 버튼 클릭 시 카카오톡 채널로 리다이렉트
+            popupConfirm.onclick = () => {
+                console.log('Confirm button clicked, redirecting to Kakao channel');
                 window.location.href = 'http://pf.kakao.com/_xbrcJb';
-            }, 1000); // 공유 메뉴가 표시될 시간을 주기 위해 약간의 지연 추가
+            };
         }
     </script>
 </body>
