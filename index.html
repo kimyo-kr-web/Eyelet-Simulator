@@ -211,7 +211,7 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background-color: #ffcc00;
+            background-color: #fff;
             color: #000;
             padding: 10px;
             border-radius: 3.526875px;
@@ -223,10 +223,11 @@
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
         }
         .popup-button {
-            margin-top: 10px;
+            display: block;
+            margin: 10px auto;
             padding: 5px 10px;
-            background-color: #fff;
-            color: #000;
+            background-color: #007bff;
+            color: #fff;
             border: none;
             border-radius: 3.526875px;
             font-size: 8pt;
@@ -235,7 +236,7 @@
             cursor: pointer;
         }
         .popup-button:hover {
-            background-color: #ccc;
+            background-color: #0056b3;
         }
     </style>
 </head>
@@ -478,7 +479,7 @@
             // 공유 메뉴를 띄우기 (iOS 및 안드로이드 지원)
             if (navigator.share) {
                 console.log('Attempting to use navigator.share');
-                popupMessage.innerText = '공유 메뉴에서 "이미지 저장" 또는 "사진에 저장"을 선택한 후 확인 버튼을 눌러 카카오톡 채널로 이동하세요.';
+                popupMessage.innerText = '공유 메뉴에서 [이미지 저장] 또는 [사진에 저장]을 선택하신 후 [확인] 버튼을 눌러 카카오톡 채널로 이동하세요.';
                 popupConfirm.style.display = 'block';
                 popup.style.display = 'block';
                 try {
@@ -493,19 +494,19 @@
                     }).catch((error) => {
                         console.error('Share failed:', error);
                         // 폴백: 공유 실패 시 다운로드
-                        popupMessage.innerText = '이미지 공유에 실패했습니다. 다운로드된 이미지를 확인한 후 확인 버튼을 눌러 카카오톡 채널로 이동하세요.';
+                        popupMessage.innerText = '이미지 공유에 실패했습니다. 다운로드된 이미지를 확인하신 후 확인 버튼을 눌러 카카오톡 채널로 이동하세요.';
                         fallbackDownload(dataUrl);
                     });
                 } catch (e) {
                     console.error('Error preparing share:', e);
                     // 폴백: 공유 준비 오류 시 다운로드
-                    popupMessage.innerText = '이미지 공유 준비 중 오류가 발생했습니다. 다운로드된 이미지를 확인한 후 확인 버튼을 눌러 카카오톡 채널로 이동하세요.';
+                    popupMessage.innerText = '이미지 공유에 실패했습니다. 다운로드된 이미지를 확인하신 후 확인 버튼을 눌러 카카오톡 채널로 이동하세요.';
                     fallbackDownload(dataUrl);
                 }
             } else {
                 console.log('navigator.share not supported, using fallback');
                 // 공유 미지원 시 다운로드
-                popupMessage.innerText = '이미지가 다운로드되었습니다. 다운로드 폴더를 확인한 후 확인 버튼을 눌러 카카오톡 채널로 이동하세요.';
+                popupMessage.innerText = '이미지가 다운로드되었습니다. 다운로드 폴더를 확인하신 후 확인 버튼을 눌러 카카오톡 채널로 이동하세요.';
                 popupConfirm.style.display = 'block';
                 popup.style.display = 'block';
                 fallbackDownload(dataUrl);
