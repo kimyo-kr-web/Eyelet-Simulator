@@ -43,16 +43,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>KIMYO Wallet Customizing</title>
-    <!-- Firebase SDK (최신 모듈러 방식) -->
-    <script type="module">
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js';
-        import { getStorage, ref, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-storage.js';
-        import { getFirestore, collection, addDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js';
-
-        window.firebase = { initializeApp, getStorage, ref, uploadBytes, getDownloadURL, getFirestore, collection, addDoc, serverTimestamp };
-    </script>
-    <!-- Pretendard 웹폰트 -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pretendard@1.3.9/dist/web/static/pretendard.css">
     <style>
         body {
             margin: 0;
@@ -64,6 +54,7 @@
             flex-direction: column;
             align-items: center;
             min-height: 100vh;
+            touch-action: none;
             overflow: hidden;
         }
         .container {
@@ -103,7 +94,7 @@
             position: relative;
             display: flex;
             align-items: flex-start;
-            touch-action: manipulation;
+            touch-action: none;
         }
         .note {
             font-size: 4.35571875pt;
@@ -131,8 +122,6 @@
             border: 6.7010625pt solid #fff;
             border-radius: 50%;
             box-sizing: content-box;
-            touch-action: manipulation;
-            cursor: pointer;
         }
         .eyelet-large {
             width: 42.85153125px;
@@ -194,7 +183,7 @@
         .eyelet-container {
             position: absolute;
             transition: left 0.1s ease-out, top 0.1s ease-out;
-            touch-action: manipulation;
+            touch-action: none;
         }
         .delete-btn {
             position: absolute;
@@ -230,19 +219,6 @@
             font-family: 'Pretendard', sans-serif;
             font-size: 7.05375pt;
             white-space: nowrap;
-        }
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.8);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
         }
     </style>
 </head>
@@ -280,333 +256,260 @@
         <div class="button-section">
             <div class="buttons">
                 <button class="button" onclick="reset()">RESET</button>
-                <button class="button" onclick="submitCustom()">SUBMIT</button>
+                <button class="button" onclick="submit()">SUBMIT</button>
             </div>
         </div>
     </div>
 
     <canvas id="downloadCanvas"></canvas>
     <div class="popup" id="popup">아일렛 추가는 최대 7개 까지 수량 제한이 있습니다.</div>
-    <div id="submitModal" class="modal">
-        <h2 style="font-size:19.7505pt; margin-bottom:14.1075px;">KIMYO CUSTOM CARD WALLET</h2>
-        <p style="font-size:12.3440625pt; margin-bottom:17.634375px;">커스텀 제출이 완료되었습니다.</p>
-        <img id="customImage" style="width:275.801625px; height:183.7501875px; border:0.705375px solid #fff; border-radius:3.526875px; margin-bottom:17.634375px;" />
-        <button class="button" onclick="downloadFromModal()">DOWNLOAD</button>
-        <button class="button" style="margin-top:7.05375px;" onclick="closeModal()">CLOSE</button>
-    </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            console.log('DOM loaded');
-            // Firebase 초기화
-            const firebaseConfig = {
-                apiKey: "AIzaSyA-EyZTPUCX1kyEShDUIxjePFRzJVQ9PR8",
-                authDomain: "kimyo-custom.firebaseapp.com",
-                projectId: "kimyo-custom",
-                storageBucket: "kimyo-custom.firebasestorage.app",
-                messagingSenderId: "743566791122",
-                appId: "1:743566791122:web:bf385aea696c2da1e9780b",
-                measurementId: "G-PGJ217GRD8"
-            };
-            try {
-                window.app = firebase.initializeApp(firebaseConfig);
-                console.log('Firebase initialized successfully');
-            } catch (error) {
-                console.error('Firebase initialization failed:', error);
-            }
-            const storage = firebase.getStorage();
-            const db = firebase.getFirestore();
+        const walletArea = document.getElementById('walletArea');
+        const typeA = document.getElementById('typeA');
+        const typeB = document.getElementById('typeB');
+        const namePhoneInput = document.getElementById('namePhone');
+        const popup = document.getElementById('popup');
+        let eyelets = [];
+        let isDragging = false;
+        let currentEyelet = null;
+        let startX, startY, startLeft, startTop;
 
-            const walletArea = document.getElementById('walletArea');
-            const typeA = document.getElementById('typeA');
-            const typeB = document.getElementById('typeB');
-            const namePhoneInput = document.getElementById('namePhone');
-            const popup = document.getElementById('popup');
-            let eyelets = [];
-            let isDragging = false;
-            let currentEyelet = null;
-            let startX, startY, startLeft, startTop;
+        typeA.addEventListener('click', () => addEyelet('small'));
+        typeB.addEventListener('click', () => addEyelet('large'));
 
-            // DOM 요소 확인
-            console.log('walletArea:', walletArea);
-            console.log('typeA:', typeA);
-            console.log('typeB:', typeB);
-            console.log('namePhoneInput:', namePhoneInput);
-            console.log('popup:', popup);
+        typeA.addEventListener('touchstart', (e) => { e.preventDefault(); addEyelet('small'); }, { passive: false });
+        typeB.addEventListener('touchstart', (e) => { e.preventDefault(); addEyelet('large'); }, { passive: false });
 
-            if (!typeA || !typeB || !walletArea || !namePhoneInput || !popup) {
-                console.error('One or more DOM elements not found');
+        function addEyelet(sizeType) {
+            if (eyelets.length >= 7) {
+                popup.style.display = 'block';
+                setTimeout(() => popup.style.display = 'none', 2000);
                 return;
             }
 
-            typeA.addEventListener('click', () => {
-                console.log('Type A clicked');
-                addEyelet('small');
+            const container = document.createElement('div');
+            container.classList.add('eyelet-container');
+
+            const eyelet = document.createElement('div');
+            eyelet.classList.add('eyelet', `eyelet-${sizeType}`);
+
+            const deleteBtn = document.createElement('button');
+            deleteBtn.classList.add('delete-btn');
+            deleteBtn.innerText = 'x';
+            deleteBtn.addEventListener('click', () => {
+                walletArea.removeChild(container);
+                eyelets = eyelets.filter(e => e !== container);
             });
-            typeB.addEventListener('click', () => {
-                console.log('Type B clicked');
-                addEyelet('large');
-            });
 
-            typeA.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                console.log('Type A touchstart');
-                addEyelet('small');
-            }, { passive: false });
-            typeB.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                console.log('Type B touchstart');
-                addEyelet('large');
-            }, { passive: false });
+            container.appendChild(eyelet);
+            container.appendChild(deleteBtn);
+            walletArea.appendChild(container);
 
-            function addEyelet(sizeType) {
-                console.log('Adding eyelet:', sizeType);
-                if (eyelets.length >= 7) {
-                    console.log('Max eyelets reached');
-                    popup.style.display = 'block';
-                    setTimeout(() => popup.style.display = 'none', 2000);
-                    return;
-                }
+            // Position in center
+            const eyeletWidth = eyelet.offsetWidth;
+            const eyeletHeight = eyelet.offsetHeight;
+            const walletWidth = walletArea.clientWidth;
+            const walletHeight = walletArea.clientHeight;
+            const left = (walletWidth - eyeletWidth) / 2;
+            const top = (walletHeight - eyeletHeight) / 2;
+            container.style.left = `${left}px`;
+            container.style.top = `${top}px`;
+            container.style.transition = 'left 0.1s ease-out, top 0.1s ease-out';
 
-                const container = document.createElement('div');
-                container.classList.add('eyelet-container');
+            eyelets.push(container);
 
-                const eyelet = document.createElement('div');
-                eyelet.classList.add('eyelet', `eyelet-${sizeType}`);
+            // Add drag listeners
+            eyelet.addEventListener('mousedown', (e) => startDragging(container, e), { passive: false });
+            eyelet.addEventListener('touchstart', (e) => startDragging(container, e), { passive: false });
+        }
 
-                const deleteBtn = document.createElement('button');
-                deleteBtn.classList.add('delete-btn');
-                deleteBtn.innerText = 'x';
-                deleteBtn.addEventListener('click', () => {
-                    console.log('Deleting eyelet');
-                    walletArea.removeChild(container);
-                    eyelets = eyelets.filter(e => e !== container);
-                });
+        function startDragging(container, e) {
+            e.preventDefault();
+            isDragging = true;
+            currentEyelet = container;
 
-                container.appendChild(eyelet);
-                container.appendChild(deleteBtn);
-                walletArea.appendChild(container);
+            if (e.type === 'touchstart') {
+                startX = e.touches[0].clientX;
+                startY = e.touches[0].clientY;
+            } else {
+                startX = e.clientX;
+                startY = e.clientY;
+            }
+            startLeft = parseFloat(container.style.left) || 0;
+            startTop = parseFloat(container.style.top) || 0;
 
-                const eyeletWidth = eyelet.offsetWidth;
-                const eyeletHeight = eyelet.offsetHeight;
-                const walletWidth = walletArea.clientWidth;
-                const walletHeight = walletArea.clientHeight;
-                const left = (walletWidth - eyeletWidth) / 2;
-                const top = (walletHeight - eyeletHeight) / 2;
-                container.style.left = `${left}px`;
-                container.style.top = `${top}px`;
-                container.style.transition = 'left 0.1s ease-out, top 0.1s ease-out';
+            document.addEventListener('mousemove', drag, { passive: false });
+            document.addEventListener('mouseup', stopDragging, { passive: false });
+            document.addEventListener('touchmove', drag, { passive: false });
+            document.addEventListener('touchend', stopDragging, { passive: false });
+        }
 
-                eyelets.push(container);
-                console.log('Eyelet added, total:', eyelets.length);
+        function drag(e) {
+            if (!isDragging) return;
+            e.preventDefault();
 
-                eyelet.addEventListener('mousedown', (e) => {
-                    console.log('Starting drag (mousedown)');
-                    startDragging(container, e);
-                }, { passive: false });
-                eyelet.addEventListener('touchstart', (e) => {
-                    console.log('Starting drag (touchstart)');
-                    startDragging(container, e);
-                }, { passive: false });
+            let clientX, clientY;
+            if (e.type === 'touchmove') {
+                clientX = e.touches[0].clientX;
+                clientY = e.touches[0].clientY;
+            } else {
+                clientX = e.clientX;
+                clientY = e.clientY;
             }
 
-            function startDragging(container, e) {
-                e.preventDefault();
-                isDragging = true;
-                currentEyelet = container;
+            const deltaX = clientX - startX;
+            const deltaY = clientY - startY;
+            const eyelet = currentEyelet.querySelector('.eyelet');
+            const eyeletWidth = eyelet.offsetWidth;
+            const eyeletHeight = eyelet.offsetHeight;
+            const walletWidth = walletArea.clientWidth;
+            const walletHeight = walletArea.clientHeight;
 
-                if (e.type === 'touchstart') {
-                    startX = e.touches[0].clientX;
-                    startY = e.touches[0].clientY;
-                } else {
-                    startX = e.clientX;
-                    startY = e.clientY;
-                }
-                startLeft = parseFloat(container.style.left) || 0;
-                startTop = parseFloat(container.style.top) || 0;
+            let newLeft = startLeft + deltaX;
+            let newTop = startTop + deltaY;
 
-                document.addEventListener('mousemove', drag, { passive: false });
-                document.addEventListener('mouseup', stopDragging, { passive: false });
-                document.addEventListener('touchmove', drag, { passive: false });
-                document.addEventListener('touchend', stopDragging, { passive: false });
+            // Restrict eyelet movement within wallet area
+            newLeft = Math.max(0, Math.min(newLeft, walletWidth - eyeletWidth));
+            newTop = Math.max(0, Math.min(newTop, walletHeight - eyeletHeight));
+
+            currentEyelet.style.left = `${newLeft}px`;
+            currentEyelet.style.top = `${newTop}px`;
+        }
+
+        function stopDragging() {
+            isDragging = false;
+            currentEyelet = null;
+            document.removeEventListener('mousemove', drag);
+            document.removeEventListener('mouseup', stopDragging);
+            document.removeEventListener('touchmove', drag);
+            document.removeEventListener('touchend', stopDragging);
+        }
+
+        function reset() {
+            eyelets.forEach(container => walletArea.removeChild(container));
+            eyelets = [];
+            namePhoneInput.value = '';
+        }
+
+        function dataURLtoBlob(dataurl) {
+            const arr = dataurl.split(',');
+            const mime = arr[0].match(/:(.*?);/)[1];
+            const bstr = atob(arr[1]);
+            let n = bstr.length;
+            const u8arr = new Uint8Array(n);
+            while (n--) {
+                u8arr[n] = bstr.charCodeAt(n);
             }
+            return new Blob([u8arr], { type: mime });
+        }
 
-            function drag(e) {
-                if (!isDragging) return;
-                e.preventDefault();
+        function downloadImage() {
+            const canvas = document.getElementById('downloadCanvas');
+            const ctx = canvas.getContext('2d');
+            const scale = 2; // For higher resolution
+            const walletWidth = 275.801625;
+            const walletHeight = 183.7501875;
+            const borderWidth = 0.705375;
+            const fontSize = 10.580625;
+            const textX = 137.9008125;
+            const textY = 180.2233125;
 
-                let clientX, clientY;
-                if (e.type === 'touchmove') {
-                    clientX = e.touches[0].clientX;
-                    clientY = e.touches[0].clientY;
-                } else {
-                    clientX = e.clientX;
-                    clientY = e.clientY;
-                }
+            canvas.width = walletWidth * scale;
+            canvas.height = walletHeight * scale;
+            ctx.scale(scale, scale);
 
-                const deltaX = clientX - startX;
-                const deltaY = clientY - startY;
-                const eyelet = currentEyelet.querySelector('.eyelet');
-                const eyeletWidth = eyelet.offsetWidth;
-                const eyeletHeight = eyelet.offsetHeight;
-                const walletWidth = walletArea.clientWidth;
-                const walletHeight = walletArea.clientHeight;
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, walletWidth, walletHeight);
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = borderWidth;
+            ctx.strokeRect(0, 0, walletWidth, walletHeight);
 
-                let newLeft = startLeft + deltaX;
-                let newTop = startTop + deltaY;
-
-                newLeft = Math.max(0, Math.min(newLeft, walletWidth - eyeletWidth));
-                newTop = Math.max(0, Math.min(newTop, walletHeight - eyeletHeight));
-
-                currentEyelet.style.left = `${newLeft}px`;
-                currentEyelet.style.top = `${newTop}px`;
-            }
-
-            function stopDragging() {
-                isDragging = false;
-                currentEyelet = null;
-                document.removeEventListener('mousemove', drag);
-                document.removeEventListener('mouseup', stopDragging);
-                document.removeEventListener('touchmove', drag);
-                document.removeEventListener('touchend', stopDragging);
-            }
-
-            function reset() {
-                console.log('Resetting');
-                eyelets.forEach(container => walletArea.removeChild(container));
-                eyelets = [];
-                namePhoneInput.value = '';
-            }
-
-            function generateImageData(callback) {
-                console.log('Generating image data');
-                const canvas = document.getElementById('downloadCanvas');
-                const ctx = canvas.getContext('2d');
-                const scale = 2;
-                const walletWidth = 275.801625;
-                const walletHeight = 183.7501875;
-                const borderWidth = 0.705375;
-                const fontSize = 10.580625;
-                const textX = 137.9008125;
-                const textY = 180.2233125;
-
-                canvas.width = walletWidth * scale;
-                canvas.height = walletHeight * scale;
-                ctx.scale(scale, scale);
-
-                ctx.fillStyle = '#000';
-                ctx.fillRect(0, 0, walletWidth, walletHeight);
+            eyelets.forEach(container => {
+                const eyelet = container.querySelector('.eyelet');
+                const rect = eyelet.getBoundingClientRect();
+                const walletRect = walletArea.getBoundingClientRect();
+                const x = rect.left - walletRect.left;
+                const y = rect.top - walletRect.top;
+                const size = eyelet.classList.contains('eyelet-large') ? 42.85153125 : 19.92684375;
+                const thickness = eyelet.classList.contains('eyelet-large') ? 7.05375 : 3.35053125;
+                const centerX = x + (size / 2);
+                const centerY = y + (size / 2);
+                const radius = size / 2;
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+                ctx.lineWidth = thickness;
                 ctx.strokeStyle = '#fff';
-                ctx.lineWidth = borderWidth;
-                ctx.strokeRect(0, 0, walletWidth, walletHeight);
+                ctx.stroke();
+            });
 
-                eyelets.forEach(container => {
-                    const eyelet = container.querySelector('.eyelet');
-                    const rect = eyelet.getBoundingClientRect();
-                    const walletRect = walletArea.getBoundingClientRect();
-                    const x = rect.left - walletRect.left;
-                    const y = rect.top - walletRect.top;
-                    const size = eyelet.classList.contains('eyelet-large') ? 42.85153125 : 19.92684375;
-                    const thickness = eyelet.classList.contains('eyelet-large') ? 7.05375 : 3.35053125;
-                    const centerX = x + (size / 2);
-                    const centerY = y + (size / 2);
-                    const radius = size / 2;
-                    ctx.beginPath();
-                    ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
-                    ctx.lineWidth = thickness;
-                    ctx.strokeStyle = '#fff';
-                    ctx.stroke();
-                });
+            ctx.font = `${fontSize}pt Pretendard`;
+            ctx.fillStyle = '#fff';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'bottom';
+            ctx.fillText(namePhoneInput.value, textX, textY);
 
-                ctx.font = `${fontSize}pt Pretendard`;
-                ctx.fillStyle = '#fff';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'bottom';
-                ctx.fillText(namePhoneInput.value, textX, textY);
+            const dataUrl = canvas.toDataURL('image/png');
 
-                callback(canvas.toDataURL('image/png'));
-            }
-
-            async function submitCustom() {
-                console.log('Submit clicked');
-                if (!namePhoneInput.value.trim()) {
-                    alert('성함 + 휴대폰 뒷자리를 입력해주세요.');
-                    return;
+            // iOS에서 공유 메뉴를 띄우기 (navigator.share 지원 여부 확인)
+            if (navigator.share && /iPhone|iPad/i.test(navigator.userAgent)) {
+                try {
+                    const blob = dataURLtoBlob(dataUrl);
+                    const file = new File([blob], 'custom_wallet.png', { type: 'image/png' });
+                    navigator.share({
+                        files: [file],
+                        title: 'Custom Wallet Design',
+                        text: '내가 디자인한 KIMYO 지갑입니다.'
+                    }).then(() => {
+                        console.log('공유 성공');
+                    }).catch((error) => {
+                        console.error('공유 실패:', error);
+                        // 공유 실패 시 기존 다운로드 방식으로 폴백
+                        fallbackDownload(dataUrl);
+                    });
+                } catch (e) {
+                    console.error('공유 준비 중 오류:', e);
+                    // 오류 발생 시 기존 다운로드 방식으로 폴백
+                    fallbackDownload(dataUrl);
                 }
-
-                generateImageData(async (dataUrl) => {
-                    try {
-                        await uploadToServer(dataUrl);
-                        console.log('Upload successful, showing modal');
-                        const modal = document.getElementById('submitModal');
-                        const img = document.getElementById('customImage');
-                        img.src = dataUrl;
-                        modal.style.display = 'flex';
-                    } catch (error) {
-                        console.error('Submit failed:', error);
-                        alert('제출에 실패했습니다. 다시 시도해주세요.');
-                    }
-                });
+            } else {
+                // iOS가 아니거나 navigator.share 미지원 시 기존 다운로드 방식
+                fallbackDownload(dataUrl);
             }
+        }
 
-            function downloadFromModal() {
-                console.log('Downloading from modal');
-                const img = document.getElementById('customImage');
-                const link = document.createElement('a');
-                link.download = 'custom_wallet.png';
-                link.href = img.src;
-                link.click();
+        function fallbackDownload(dataUrl) {
+            const link = document.createElement('a');
+            link.download = 'custom_wallet.png';
+            link.href = dataUrl;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
 
-                if (/Android|iPhone|iPad/i.test(navigator.userAgent)) {
-                    try {
-                        const blob = dataURLtoBlob(img.src);
-                        const url = URL.createObjectURL(blob);
-                        const a = document.createElement('a');
-                        a.href = url;
-                        a.download = 'custom_wallet.png';
-                        document.body.appendChild(a);
-                        a.click();
-                        document.body.removeChild(a);
-                        URL.revokeObjectURL(url);
-                    } catch (e) {
-                        console.error('Failed to save to gallery:', e);
-                    }
+            // 모바일에서 추가 다운로드 시도
+            if (/Android|iPhone|iPad/i.test(navigator.userAgent)) {
+                try {
+                    const blob = dataURLtoBlob(dataUrl);
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'custom_wallet.png';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                } catch (e) {
+                    console.error('Failed to save to gallery:', e);
                 }
             }
+        }
 
-            function closeModal() {
-                console.log('Closing modal');
-                document.getElementById('submitModal').style.display = 'none';
-                reset();
-            }
-
-            function dataURLtoBlob(dataurl) {
-                const arr = dataurl.split(',');
-                const mime = arr[0].match(/:(.*?);/)[1];
-                const bstr = atob(arr[1]);
-                let n = bstr.length;
-                const u8arr = new Uint8Array(n);
-                while (n--) {
-                    u8arr[n] = bstr.charCodeAt(n);
-                }
-                return new Blob([u8arr], { type: mime });
-            }
-
-            async function uploadToServer(dataUrl) {
-                console.log('Uploading to server');
-                const blob = dataURLtoBlob(dataUrl);
-                const fileName = `custom_wallet_${Date.now()}.png`;
-                const storageRef = firebase.ref(storage, 'customs/' + fileName);
-                await firebase.uploadBytes(storageRef, blob);
-                const url = await firebase.getDownloadURL(storageRef);
-                await firebase.addDoc(firebase.collection(db, 'customs'), {
-                    timestamp: firebase.serverTimestamp(),
-                    imageUrl: url,
-                    userInput: namePhoneInput.value
-                });
-                console.log('Upload completed, URL:', url);
-            }
-        });
+        function submit() {
+            // 이미지 다운로드 및 공유 트리거
+            downloadImage();
+            // 카카오 플러스친구로 리다이렉트
+            window.location.href = 'http://pf.kakao.com/_xbrcJb';
+        }
     </script>
 </body>
 </html>
