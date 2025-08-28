@@ -1,9 +1,53 @@
-<!DOCTYPE html>
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>KIMYO Wallet Customizing</title>
+    <!-- Pretendard Font CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/pretendard@1.3.9/dist/web/static/pretendard.css" rel="stylesheet">
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js"></script>
     <style>
         body {
             margin: 0;
@@ -217,7 +261,7 @@
         <div class="button-section">
             <div class="buttons">
                 <button class="button" onclick="reset()">RESET</button>
-                <button class="button" onclick="downloadImage()">DOWNLOAD</button>
+                <button class="button" onclick="uploadImage()">SUBMIT</button>
             </div>
         </div>
     </div>
@@ -226,6 +270,23 @@
     <div class="popup" id="popup">아일렛 추가는 최대 7개 까지 수량 제한이 있습니다.</div>
 
     <script>
+        // Firebase config (DO NOT UPLOAD TO PUBLIC REPO - Replace with your Firebase config)
+        // For GitHub, store in environment variables or separate config file ignored by .gitignore
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+        try {
+            firebase.initializeApp(firebaseConfig);
+        } catch (e) {
+            console.error('Firebase initialization failed:', e);
+            alert('Firebase 설정 오류입니다. 관리자에게 문의하세요.');
+        }
+
         const walletArea = document.getElementById('walletArea');
         const typeA = document.getElementById('typeA');
         const typeB = document.getElementById('typeB');
@@ -235,6 +296,13 @@
         let isDragging = false;
         let currentEyelet = null;
         let startX, startY, startLeft, startTop;
+
+        // Ensure DOM elements exist
+        if (!walletArea || !typeA || !typeB || !namePhoneInput || !popup) {
+            console.error('Required DOM elements are missing');
+            alert('페이지 로드 오류입니다. 새로고침하세요.');
+            throw new Error('Missing DOM elements');
+        }
 
         typeA.addEventListener('click', () => addEyelet('small'));
         typeB.addEventListener('click', () => addEyelet('large'));
@@ -267,20 +335,25 @@
             container.appendChild(deleteBtn);
             walletArea.appendChild(container);
 
-            // Position in center
-            const eyeletWidth = eyelet.offsetWidth;
-            const eyeletHeight = eyelet.offsetHeight;
-            const walletWidth = walletArea.clientWidth;
-            const walletHeight = walletArea.clientHeight;
-            const left = (walletWidth - eyeletWidth) / 2;
-            const top = (walletHeight - eyeletHeight) / 2;
-            container.style.left = `${left}px`;
-            container.style.top = `${top}px`;
-            container.style.transition = 'left 0.1s ease-out, top 0.1s ease-out';
+            // Wait for DOM rendering
+            requestAnimationFrame(() => {
+                const eyeletWidth = eyelet.offsetWidth || 0;
+                const eyeletHeight = eyelet.offsetHeight || 0;
+                const walletWidth = walletArea.clientWidth || 0;
+                const walletHeight = walletArea.clientHeight || 0;
+                if (!eyeletWidth || !walletWidth) {
+                    console.error('Failed to get dimensions for eyelet or wallet');
+                    return;
+                }
+                const left = (walletWidth - eyeletWidth) / 2;
+                const top = (walletHeight - eyeletHeight) / 2;
+                container.style.left = `${left}px`;
+                container.style.top = `${top}px`;
+                container.style.transition = 'left 0.1s ease-out, top 0.1s ease-out';
+            });
 
             eyelets.push(container);
 
-            // Add drag listeners
             eyelet.addEventListener('mousedown', (e) => startDragging(container, e), { passive: false });
             eyelet.addEventListener('touchstart', (e) => startDragging(container, e), { passive: false });
         }
@@ -322,15 +395,14 @@
             const deltaX = clientX - startX;
             const deltaY = clientY - startY;
             const eyelet = currentEyelet.querySelector('.eyelet');
-            const eyeletWidth = eyelet.offsetWidth;
-            const eyeletHeight = eyelet.offsetHeight;
-            const walletWidth = walletArea.clientWidth;
-            const walletHeight = walletArea.clientHeight;
+            const eyeletWidth = eyelet.offsetWidth || 0;
+            const eyeletHeight = eyelet.offsetHeight || 0;
+            const walletWidth = walletArea.clientWidth || 0;
+            const walletHeight = walletArea.clientHeight || 0;
 
             let newLeft = startLeft + deltaX;
             let newTop = startTop + deltaY;
 
-            // Restrict eyelet movement within wallet area
             newLeft = Math.max(0, Math.min(newLeft, walletWidth - eyeletWidth));
             newTop = Math.max(0, Math.min(newTop, walletHeight - eyeletHeight));
 
@@ -353,10 +425,14 @@
             namePhoneInput.value = '';
         }
 
-        function downloadImage() {
+        async function uploadImage() {
             const canvas = document.getElementById('downloadCanvas');
+            if (!canvas) {
+                alert('캔버스 로드 오류입니다. 새로고침하세요.');
+                return;
+            }
             const ctx = canvas.getContext('2d');
-            const scale = 2; // For higher resolution
+            const scale = 2;
             const walletWidth = 275.801625;
             const walletHeight = 183.7501875;
             const borderWidth = 0.705375;
@@ -396,42 +472,41 @@
             ctx.fillStyle = '#fff';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'bottom';
-            ctx.fillText(namePhoneInput.value, textX, textY);
+            ctx.fillText(namePhoneInput.value || '', textX, textY);
 
-            const link = document.createElement('a');
-            link.download = 'custom_wallet.png';
-            link.href = canvas.toDataURL('image/png');
-            link.click();
-
-            // Attempt to trigger download to gallery on mobile
-            if (/Android|iPhone|iPad/i.test(navigator.userAgent)) {
-                try {
-                    const dataUrl = canvas.toDataURL('image/png');
-                    const blob = dataURLtoBlob(dataUrl);
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = 'custom_wallet.png';
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    URL.revokeObjectURL(url);
-                } catch (e) {
-                    console.error('Failed to save to gallery:', e);
+            try {
+                const storage = firebase.storage();
+                if (!storage) {
+                    throw new Error('Firebase Storage가 초기화되지 않았습니다.');
                 }
-            }
-        }
+                const timestamp = Date.now();
+                const userId = (namePhoneInput.value || 'anonymous').replace(/[\s\/\\?%*:|"<>]/g, '_');
+                const fileName = `custom_wallets/${timestamp}_${userId}.png`;
+                const storageRef = storage.ref().child(fileName);
 
-        function dataURLtoBlob(dataurl) {
-            const arr = dataurl.split(',');
-            const mime = arr[0].match(/:(.*?);/)[1];
-            const bstr = atob(arr[1]);
-            let n = bstr.length;
-            const u8arr = new Uint8Array(n);
-            while (n--) {
-                u8arr[n] = bstr.charCodeAt(n);
+                const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+                await storageRef.put(blob);
+                popup.innerText = '이미지가 성공적으로 업로드되었습니다!';
+                popup.style.display = 'block';
+                setTimeout(() => {
+                    popup.innerText = '아일렛 추가는 최대 7개 까지 수량 제한이 있습니다.';
+                    popup.style.display = 'none';
+                }, 2000);
+
+                // Fallback local download
+                const link = document.createElement('a');
+                link.download = 'custom_wallet.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            } catch (e) {
+                console.error('Upload failed:', e);
+                popup.innerText = '업로드 실패: 서버 연결을 확인하세요.';
+                popup.style.display = 'block';
+                setTimeout(() => {
+                    popup.innerText = '아일렛 추가는 최대 7개 까지 수량 제한이 있습니다.';
+                    popup.style.display = 'none';
+                }, 2000);
             }
-            return new Blob([u8arr], { type: mime });
         }
     </script>
 </body>
